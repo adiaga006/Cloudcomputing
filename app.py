@@ -8,13 +8,8 @@ import numpy as np
 from threading import Thread
 
 
-global capture,rec_frame, grey, switch, neg, face, rec, out 
+global capture
 capture=0
-grey=0
-neg=0
-face=0
-switch=1
-rec=0
 
 #make shots directory to save pics
 try:
@@ -31,61 +26,17 @@ app = Flask(__name__, template_folder='./templates')
 
 camera = cv2.VideoCapture(0)
 
-def record(out):
-    global rec_frame
-    while(rec):
-        time.sleep(0.05)
-        out.write(rec_frame)
-
-
-def detect_face(frame):
-    global net
-    (h, w) = frame.shape[:2]
-    blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)), 1.0,
-        (300, 300), (104.0, 177.0, 123.0))   
-    net.setInput(blob)
-    detections = net.forward()
-    confidence = detections[0, 0, 0, 2]
-
-    if confidence < 0.5:            
-            return frame           
-
-    box = detections[0, 0, 0, 3:7] * np.array([w, h, w, h])
-    (startX, startY, endX, endY) = box.astype("int")
-    try:
-        frame=frame[startY:endY, startX:endX]
-        (h, w) = frame.shape[:2]
-        r = 480 / float(h)
-        dim = ( int(w * r), 480)
-        frame=cv2.resize(frame,dim)
-    except Exception as e:
-        pass
-    return frame
- 
 
 def gen_frames():  # generate frame by frame from camera
-    global out, capture,rec_frame
+    global capture
     while True:
         success, frame = camera.read() 
-        if success:
-            if(face):                
-                frame= detect_face(frame)
-            if(grey):
-                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            if(neg):
-                frame=cv2.bitwise_not(frame)    
+        if success:  
             if(capture):
                 capture=0
                 now = datetime.datetime.now()
                 p = os.path.sep.join(['shots', "shot.png".format(str(now).replace(":",''))])
-                cv2.imwrite(p, frame)
-            
-            if(rec):
-                rec_frame=frame
-                frame= cv2.putText(cv2.flip(frame,1),"Recording...", (0,25), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255),4)
-                frame=cv2.flip(frame,1)
-            
-                
+                cv2.imwrite(p, frame)       
             try:
                 ret, buffer = cv2.imencode('.jpg', cv2.flip(frame,1))
                 frame = buffer.tobytes()
@@ -97,9 +48,9 @@ def gen_frames():  # generate frame by frame from camera
         else:
             pass
 
-account_id = "ASIAWIM27RKEIYJYO4HM"
-account_key = "iNFGWEbFULt1zznqVSqCVCa11Wx8tor7cU6r+w5x"
-aws_token="FwoGZXIvYXdzEAgaDP3UNhLKY4wVxAt7TyLPAZi64fG2Xnk2sdD86Q12gEaENnmf7BbtrTnfl5HGRjl4SK9Krcko601m1XuenOqwYw6eEntXZ6ThhOi3xRRARVZ2d4HTB1thSbaS4jWS9IVmJhvkVx8mwPDVb6+KEXHM/nv4AWar68ZlzOo2DCGHeeC3AzJcXC7k2xgmsZJcmlAhL3GQ4CHYGlaIsLABRRkYnKPWzh0XEE1ttRqdix5qIwjcLMMU7Sipb7vMjQgp7FXu21HlJePH4kNTF54mO7sn8D3TxWp4OuW7Ihljy8SYVijpr/ecBjItZ1SotCjve4Gn26FJhVgGbKu18OY4EJjvbIPb1x17su+0R6IyYuF3apwiGit7"
+account_id = "ASIAWIM27RKEBOT7NZ37"
+account_key = "ozS+KZZHpNXUsM1m1+tSdXR3rF1OMG1O6xIQoQx+"
+aws_token="FwoGZXIvYXdzEBUaDLKIL/CKTGKzxmrX/CLPAU4WObxHpqz6oQbvyEp4VS1xuf5EalarM47hzT7mBsQVj+mpOy1RnjUn2voZSlCNnIdOBC8WvSJF5e/vzbTFnlnm39F73nEMYyULIEKz8/UQNiKCtUeqBiLL55mF7DqcNmRbpxm51OwtC7lrX0JtIULZlprGOZiGCbONgQOUjBoiZhquLW3rKjjxYYXN0KB8PRyAGM8zGoDZZaDVVoKyITobVW7te1EujigtpW+DXIsZMuZml5xfkDve9DFk8pmQ3+Wxu4DnGwAsKULGUydkyCjglPqcBjItMYuAncxrqFH9eXNDL6jcmT/h66CoGnXafaQvOta5JO0+h02nDWDR22El0QRs"
 def client():
     global account_id
     global account_key
@@ -167,4 +118,5 @@ if __name__ == '__main__':
     app.run(host='0.0.0.0',port=5000)
 
 camera.release()
-cv2.destroyAllWindows() 
+ 
+
