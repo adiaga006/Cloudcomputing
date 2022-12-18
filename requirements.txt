@@ -4,4 +4,3 @@ streamlit
 Pillow
 jinja2>=3.0
 opencv-python-headless==4.5.4.60
-pandas 1.1.5
